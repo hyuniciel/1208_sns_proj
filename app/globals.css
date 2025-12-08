@@ -4,7 +4,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Instagram 컬러를 Tailwind 유틸리티로 사용 가능하도록 매핑 */
+  --color-instagram-blue: var(--instagram-blue);
   --color-background: var(--background);
+  --color-card-background: var(--card-background);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-like: var(--like);
+  
+  /* 기존 shadcn/ui 변수들 */
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -23,7 +32,6 @@
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
-  --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -45,7 +53,26 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  
+  /* Instagram 컬러 스키마 */
+  --instagram-blue: #0095f6; /* 브랜드 컬러 - 버튼, 링크 */
+  --background: #fafafa; /* 전체 배경 */
+  --card-background: #ffffff; /* 카드 배경 */
+  --border: #dbdbdb; /* 테두리 */
+  --text-primary: #262626; /* 본문 텍스트 */
+  --text-secondary: #8e8e8e; /* 보조 텍스트 */
+  --like: #ed4956; /* 좋아요 빨간 하트 */
+  
+  /* 타이포그래피 */
+  --text-xs: 12px; /* 시간 */
+  --text-sm: 14px; /* 기본 */
+  --text-base: 16px; /* 입력창 */
+  --text-xl: 20px; /* 프로필 */
+  --font-normal: 400;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* 기존 shadcn/ui 변수들 (호환성 유지) */
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -60,7 +87,6 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -118,6 +144,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   main {
     @apply max-w-7xl mx-auto pt-16 px-4;
