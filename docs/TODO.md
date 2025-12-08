@@ -29,37 +29,37 @@
 
 ## 1. 기본 세팅
 
-- [ ] Tailwind CSS 설정 (인스타 컬러 스키마)
-  - [ ] `app/globals.css`에 Instagram 컬러 변수 추가
-  - [ ] 타이포그래피 설정
-- [ ] Supabase 데이터베이스 마이그레이션
-  - [ ] `db.sql` 파일을 Supabase에 적용
-  - [ ] 테이블 생성 확인 (users, posts, likes, comments, follows)
-  - [ ] Views 및 Triggers 확인
-- [ ] Supabase Storage 버킷 생성
-  - [ ] `posts` 버킷 생성 (공개 읽기)
-  - [ ] 업로드 정책 설정
-- [ ] TypeScript 타입 정의
-  - [ ] `lib/types.ts` 파일 생성
-  - [ ] User, Post, Like, Comment, Follow 타입 정의
+- [x] Tailwind CSS 설정 (인스타 컬러 스키마)
+  - [x] `app/globals.css`에 Instagram 컬러 변수 추가
+  - [x] 타이포그래피 설정
+- [x] Supabase 데이터베이스 마이그레이션
+  - [x] `db.sql` 파일을 Supabase에 적용
+  - [x] 테이블 생성 확인 (users, posts, likes, comments, follows)
+  - [x] Views 및 Triggers 확인
+- [x] Supabase Storage 버킷 생성
+  - [x] `posts` 버킷 생성 (공개 읽기)
+  - [x] 업로드 정책 설정
+- [x] TypeScript 타입 정의
+  - [x] `lib/types.ts` 파일 생성
+  - [x] User, Post, Like, Comment, Follow 타입 정의
 
 ## 2. 레이아웃 구조
 
-- [ ] `app/(main)/layout.tsx` 생성
-  - [ ] Sidebar 통합
-  - [ ] 반응형 레이아웃 (Desktop/Tablet/Mobile)
-- [ ] `components/layout/Sidebar.tsx`
-  - [ ] Desktop: 244px 너비, 아이콘 + 텍스트
-  - [ ] Tablet: 72px 너비, 아이콘만
-  - [ ] Mobile: 숨김
-  - [ ] 메뉴 항목: 홈, 검색, 만들기, 프로필
-  - [ ] Hover 효과 및 Active 상태 스타일
-- [ ] `components/layout/Header.tsx`
-  - [ ] Mobile 전용 (60px 높이)
-  - [ ] 로고 + 알림/DM/프로필 아이콘
-- [ ] `components/layout/BottomNav.tsx`
-  - [ ] Mobile 전용 (50px 높이)
-  - [ ] 5개 아이콘: 홈, 검색, 만들기, 좋아요, 프로필
+- [x] `app/(main)/layout.tsx` 생성
+  - [x] Sidebar 통합
+  - [x] 반응형 레이아웃 (Desktop/Tablet/Mobile)
+- [x] `components/layout/Sidebar.tsx`
+  - [x] Desktop: 244px 너비, 아이콘 + 텍스트
+  - [x] Tablet: 72px 너비, 아이콘만
+  - [x] Mobile: 숨김
+  - [x] 메뉴 항목: 홈, 검색, 만들기, 프로필
+  - [x] Hover 효과 및 Active 상태 스타일
+- [x] `components/layout/Header.tsx`
+  - [x] Mobile 전용 (60px 높이)
+  - [x] 로고 + 알림/DM/프로필 아이콘
+- [x] `components/layout/BottomNav.tsx`
+  - [x] Mobile 전용 (50px 높이)
+  - [x] 5개 아이콘: 홈, 검색, 만들기, 좋아요, 프로필
 
 ## 3. 홈 피드 페이지
 
