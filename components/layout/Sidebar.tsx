@@ -12,11 +12,13 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Home, Search, PlusSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CreatePostModal from "@/components/post/CreatePostModal";
 
 interface NavItem {
   href: string;
@@ -28,6 +30,7 @@ interface NavItem {
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useUser();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // 프로필 링크 (본인 프로필)
   const profileHref = user ? "/profile" : "/";
@@ -48,8 +51,7 @@ export default function Sidebar() {
       icon: PlusSquare,
       label: "만들기",
       onClick: () => {
-        // TODO: CreatePostModal 열기 (나중에 구현)
-        console.log("Create post modal");
+        setIsCreateModalOpen(true);
       },
     },
     {
@@ -190,6 +192,16 @@ export default function Sidebar() {
           </nav>
         </div>
       </div>
+
+      {/* 게시물 작성 모달 */}
+      <CreatePostModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onSuccess={() => {
+          // 업로드 성공 시 페이지 새로고침하여 피드 업데이트
+          window.location.reload();
+        }}
+      />
     </aside>
   );
 }

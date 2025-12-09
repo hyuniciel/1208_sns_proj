@@ -14,7 +14,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkSupabaseClient } from "@/lib/supabase/server";
-import type { PostWithUser } from "@/lib/types";
+import type { PostWithUser, Post } from "@/lib/types";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+const MAX_CAPTION_LENGTH = 2200;
 
 /**
  * GET: 게시물 목록 조회
@@ -178,6 +187,178 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("❌ GET /api/posts 에러:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST: 게시물 생성
+ *
+ * 요청 본문 (FormData):
+ * - image: File (이미지 파일, 필수)
+ * - caption: string (선택적, 최대 2,200자)
+ *
+ * 응답:
+ * {
+ *   success: true,
+ *   post: Post
+ * }
+ */
+export async function POST(request: NextRequest) {
+  try {
+    console.group("POST /api/posts");
+
+    // 1. 인증 확인
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      console.log("❌ 인증 실패");
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    console.log("✅ 인증 확인:", clerkUserId);
+
+    // 2. FormData 파싱
+    const formData = await request.formData();
+    const image = formData.get("image") as File;
+    const caption = formData.get("caption") as string | null;
+
+    // 3. 파일 검증
+    if (!image) {
+      console.log("❌ 이미지 파일 없음");
+      return NextResponse.json(
+        { error: "Image is required" },
+        { status: 400 }
+      );
+    }
+
+    if (image.size > MAX_FILE_SIZE) {
+      console.log("❌ 파일 크기 초과:", image.size);
+      return NextResponse.json(
+        { error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
+        { status: 400 }
+      );
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(image.type)) {
+      console.log("❌ 잘못된 파일 타입:", image.type);
+      return NextResponse.json(
+        {
+          error: "Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. 캡션 검증
+    const captionText = caption?.trim() || null;
+    if (captionText && captionText.length > MAX_CAPTION_LENGTH) {
+      console.log("❌ 캡션 길이 초과:", captionText.length);
+      return NextResponse.json(
+        { error: `Caption exceeds ${MAX_CAPTION_LENGTH} characters` },
+        { status: 400 }
+      );
+    }
+
+    console.log("📋 요청 데이터:", {
+      fileName: image.name,
+      fileSize: image.size,
+      fileType: image.type,
+      captionLength: captionText?.length || 0,
+    });
+
+    // 5. Supabase 클라이언트 생성
+    const supabase = createClerkSupabaseClient();
+
+    // 6. 현재 사용자 UUID 조회
+    const { data: currentUser, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_id", clerkUserId)
+      .single();
+
+    if (userError || !currentUser) {
+      console.error("❌ 사용자 조회 실패:", userError);
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+    console.log("✅ 현재 사용자 UUID:", currentUser.id);
+
+    // 7. Supabase Storage 업로드
+    const fileExt = image.name.split(".").pop() || "jpg";
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(7)}.${fileExt}`;
+    const filePath = `${clerkUserId}/${fileName}`;
+
+    console.log("📤 파일 업로드 시작:", filePath);
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("posts")
+      .upload(filePath, image, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("❌ Storage 업로드 실패:", uploadError);
+      return NextResponse.json(
+        { error: "Failed to upload image", details: uploadError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ 파일 업로드 완료:", uploadData.path);
+
+    // 8. Public URL 가져오기
+    const { data: urlData } = supabase.storage
+      .from("posts")
+      .getPublicUrl(filePath);
+
+    const imageUrl = urlData.publicUrl;
+    console.log("✅ Public URL:", imageUrl);
+
+    // 9. posts 테이블에 저장
+    const { data: post, error: postError } = await supabase
+      .from("posts")
+      .insert({
+        user_id: currentUser.id,
+        image_url: imageUrl,
+        caption: captionText,
+      })
+      .select()
+      .single();
+
+    if (postError) {
+      console.error("❌ 게시물 저장 실패:", postError);
+
+      // 업로드된 파일 삭제 시도 (롤백)
+      await supabase.storage
+        .from("posts")
+        .remove([filePath])
+        .catch(() => {}); // 삭제 실패는 무시
+
+      return NextResponse.json(
+        { error: "Failed to create post", details: postError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ 게시물 생성 완료:", post.id);
+    console.groupEnd();
+
+    return NextResponse.json({
+      success: true,
+      post,
+    });
+  } catch (error) {
+    console.error("❌ POST /api/posts 에러:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
