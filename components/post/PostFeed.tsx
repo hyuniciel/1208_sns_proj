@@ -42,6 +42,17 @@ export default function PostFeed({ userId }: PostFeedProps) {
     );
   }, []);
 
+  // 댓글 변경 핸들러
+  const handleCommentChange = useCallback((postId: string, newCount: number) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? { ...post, comments_count: newCount }
+          : post
+      )
+    );
+  }, []);
+
   // 현재 사용자의 Supabase UUID 조회 (Clerk user ID로)
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -175,6 +186,7 @@ export default function PostFeed({ userId }: PostFeedProps) {
           post={post} 
           currentUserId={currentUserId}
           onLikeChange={handleLikeChange}
+          onCommentChange={handleCommentChange}
         />
       ))}
 

@@ -10,26 +10,33 @@
 
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatRelativeTime } from '@/lib/utils/time';
 import LikeButton, { DoubleTapHeart, type LikeButtonRef } from './LikeButton';
-import type { PostWithUser } from '@/lib/types';
+import CommentList from '@/components/comment/CommentList';
+import CommentForm from '@/components/comment/CommentForm';
+import type { PostWithUser, CommentWithUser } from '@/lib/types';
 
 interface PostCardProps {
   post: PostWithUser;
   currentUserId?: string; // 현재 사용자 ID (삭제 버튼 표시용)
   onLikeChange?: (postId: string, liked: boolean, newCount: number) => void;
+  onCommentChange?: (postId: string, newCount: number) => void;
 }
 
-export default function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
+export default function PostCard({ post, currentUserId, onLikeChange, onCommentChange }: PostCardProps) {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
+  const [commentsCount, setCommentsCount] = useState(post.comments_count);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
   const likeButtonRef = useRef<LikeButtonRef>(null);
   const lastTapRef = useRef(0);
 
@@ -70,6 +77,76 @@ export default function PostCard({ post, currentUserId, onLikeChange }: PostCard
       onLikeChange(post.id, liked, newCount);
     }
   }, [post.id, onLikeChange]);
+
+  // 댓글 목록 로드
+  const loadComments = useCallback(async (showAll: boolean = false) => {
+    if (isLoadingComments) return;
+
+    setIsLoadingComments(true);
+    try {
+      const limit = showAll ? 50 : 2;
+      const response = await fetch(
+        `/api/comments?post_id=${post.id}&limit=${limit}&offset=0`
+      );
+
+      if (!response.ok) {
+        throw new Error('댓글을 불러오는데 실패했습니다.');
+      }
+
+      const data = await response.json();
+      setComments(data.comments || []);
+    } catch (error) {
+      console.error('❌ 댓글 로드 에러:', error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, [post.id, isLoadingComments]);
+
+  // 초기 댓글 로드 (최신 2개만)
+  useEffect(() => {
+    if (post.comments_count > 0) {
+      loadComments(false);
+    }
+  }, [post.comments_count]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 댓글 작성 핸들러
+  const handleCommentSubmit = useCallback((newComment: CommentWithUser) => {
+    setComments((prev) => {
+      // 중복 방지
+      if (prev.some((c) => c.id === newComment.id)) {
+        return prev;
+      }
+      return [...prev, newComment];
+    });
+    setCommentsCount((prev) => prev + 1);
+    
+    // 부모 컴포넌트에 알림
+    if (onCommentChange) {
+      onCommentChange(post.id, commentsCount + 1);
+    }
+  }, [post.id, commentsCount, onCommentChange]);
+
+  // 댓글 삭제 핸들러
+  const handleCommentDelete = useCallback((commentId: string) => {
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    setCommentsCount((prev) => Math.max(0, prev - 1));
+    
+    // 부모 컴포넌트에 알림
+    if (onCommentChange) {
+      onCommentChange(post.id, Math.max(0, commentsCount - 1));
+    }
+  }, [post.id, commentsCount, onCommentChange]);
+
+  // "모두 보기" 핸들러
+  const handleShowAllComments = useCallback(() => {
+    if (!showAllComments) {
+      setShowAllComments(true);
+      loadComments(true);
+    } else {
+      setShowAllComments(false);
+      loadComments(false);
+    }
+  }, [showAllComments, loadComments]);
 
   return (
     <article className="bg-card-background border border-border rounded-lg mb-4">
@@ -177,12 +254,26 @@ export default function PostCard({ post, currentUserId, onLikeChange }: PostCard
           </div>
         )}
 
-        {/* 댓글 미리보기 (나중에 구현) */}
-        {post.comments_count > 0 && (
-          <button className="text-text-secondary text-sm hover:text-text-primary">
-            댓글 {post.comments_count}개 모두 보기
-          </button>
+        {/* 댓글 목록 */}
+        {comments.length > 0 && (
+          <CommentList
+            postId={post.id}
+            comments={comments}
+            maxVisible={showAllComments ? undefined : 2}
+            showAllLink={commentsCount > 2}
+            onCommentDelete={handleCommentDelete}
+            currentUserId={currentUserId}
+            onShowAll={handleShowAllComments}
+            totalComments={commentsCount}
+          />
         )}
+
+        {/* 댓글 입력 폼 */}
+        <CommentForm
+          postId={post.id}
+          onSubmit={handleCommentSubmit}
+          placeholder="댓글 달기..."
+        />
       </div>
     </article>
   );
