@@ -213,7 +213,6 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
         <div className="flex items-center gap-3">
           <Link href={`/profile/${post.user.id}`} className="hover:opacity-70">
             <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-              {/* 프로필 이미지 (Clerk 또는 기본 아바타) - 나중에 구현 */}
               <span className="text-xs text-text-secondary">
                 {post.user.name.charAt(0).toUpperCase()}
               </span>
@@ -222,7 +221,8 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
           <div>
             <Link
               href={`/profile/${post.user.id}`}
-              className="font-bold text-text-primary hover:opacity-70 block"
+              className="font-bold text-text-primary hover:opacity-70 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+              aria-label={`${post.user.name}의 프로필`}
             >
               {post.user.name}
             </Link>
@@ -236,8 +236,13 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
         {currentUserId === post.user_id && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0">
-                <MoreHorizontal className="w-5 h-5 text-text-primary" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-0"
+                aria-label="게시물 옵션 메뉴"
+              >
+                <MoreHorizontal className="w-5 h-5 text-text-primary" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -258,10 +263,19 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
         className="w-full aspect-square relative bg-gray-100 cursor-pointer select-none"
         onDoubleClick={handleDoubleTap}
         onClick={() => onPostClick?.(post.id)}
+        role="button"
+        tabIndex={0}
+        aria-label="게시물 상세 보기"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onPostClick?.(post.id);
+          }
+        }}
       >
         <Image
           src={post.image_url}
-          alt={post.caption || '게시물 이미지'}
+          alt={post.caption ? `${post.user.name}의 게시물: ${post.caption}` : `${post.user.name}의 게시물`}
           fill
           className="object-cover image-fade-in"
           sizes="(max-width: 768px) 100vw, 630px"

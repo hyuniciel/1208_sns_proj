@@ -14,7 +14,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkSupabaseClient } from "@/lib/supabase/server";
-import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import type { PostWithUser } from "@/lib/types";
 
 /**

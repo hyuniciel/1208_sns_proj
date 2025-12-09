@@ -14,7 +14,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkSupabaseClient } from "@/lib/supabase/server";
-import type { Like } from "@/lib/types";
 
 /**
  * POST: 좋아요 추가

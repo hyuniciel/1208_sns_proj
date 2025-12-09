@@ -14,6 +14,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { X, Image as ImageIcon, Loader2 } from "lucide-react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -193,18 +194,20 @@ export default function CreatePostModal({
           <div className="w-full md:w-1/2 aspect-square bg-gray-100 flex items-center justify-center relative">
             {previewUrl ? (
               <>
-                <img
+                <Image
                   src={previewUrl}
                   alt="미리보기"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 300px"
                 />
                 <button
                   onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
                   disabled={isUploading}
                   aria-label="이미지 제거"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </>
             ) : (

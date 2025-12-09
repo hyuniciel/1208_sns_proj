@@ -266,6 +266,44 @@ export default function PostModal({
     [post, onPostChange]
   );
 
+  // 삭제 확인 다이얼로그 열기
+  const handleDeleteClick = useCallback(() => {
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  // 게시물 삭제 확인
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!post || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "게시물 삭제에 실패했습니다.");
+      }
+
+      // 삭제 성공 시 모달 닫기 및 부모 컴포넌트에 알림
+      onClose();
+      if (onDelete) {
+        onDelete(post.id);
+      }
+    } catch (error) {
+      console.error("❌ 게시물 삭제 에러:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "알 수 없는 오류가 발생했습니다."
+      );
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  }, [post, isDeleting, onClose, onDelete]);
+
   // 로딩 상태
   if (isLoading) {
     return (
@@ -306,8 +344,13 @@ export default function PostModal({
           <div className="flex flex-col h-full">
             {/* 헤더 */}
             <header className="flex items-center justify-between px-4 py-3 border-b border-border h-[60px]">
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <ChevronLeft className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onClose}
+                aria-label="뒤로 가기"
+              >
+                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
               </Button>
               <h2 className="font-semibold text-text-primary">게시물</h2>
               <Button variant="ghost" size="sm">
@@ -634,7 +677,7 @@ export default function PostModal({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteConfirm}
+              onClick={handleDeleteClick}
               disabled={isDeleting}
               className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
             >

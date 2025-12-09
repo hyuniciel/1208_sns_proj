@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
 import PostModal from "@/components/post/PostModal";
+import PostGridSkeleton from "./PostGridSkeleton";
 import type { PostWithUser } from "@/lib/types";
 
 interface PostGridProps {

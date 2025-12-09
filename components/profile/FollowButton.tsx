@@ -26,7 +26,7 @@ interface FollowButtonProps {
     newFollowersCount: number
   ) => void;
   disabled?: boolean; // 버튼 비활성화 (본인 프로필 등)
-  size?: "sm" | "md" | "lg"; // 버튼 크기
+  size?: "sm" | "default" | "lg"; // 버튼 크기
 }
 
 export default function FollowButton({

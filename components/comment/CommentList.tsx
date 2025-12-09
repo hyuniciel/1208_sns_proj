@@ -26,10 +26,10 @@ interface CommentListProps {
   onCommentDelete?: (commentId: string) => void;
   currentUserId?: string;
   onShowAll?: () => void;
+  totalComments?: number;
 }
 
 export default function CommentList({
-  postId,
   comments,
   maxVisible,
   showAllLink = true,

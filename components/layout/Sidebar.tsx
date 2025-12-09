@@ -94,15 +94,18 @@ export default function Sidebar() {
                     onClick={item.onClick}
                     className={cn(
                       "w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors",
-                      "hover:bg-gray-50 active:scale-[0.98]",
+                      "hover:bg-gray-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       active && "font-bold text-text-primary"
                     )}
+                    aria-label={item.label}
+                    aria-current={active ? "page" : undefined}
                   >
                     <Icon
                       className={cn(
                         "w-6 h-6",
                         active ? "text-text-primary" : "text-text-secondary"
                       )}
+                      aria-hidden="true"
                     />
                     <span className="text-sm">{item.label}</span>
                   </button>
@@ -115,15 +118,18 @@ export default function Sidebar() {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-4 px-4 py-3 rounded-lg transition-colors",
-                    "hover:bg-gray-50 active:scale-[0.98]",
+                    "hover:bg-gray-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     active && "font-bold text-text-primary"
                   )}
+                  aria-label={item.label}
+                  aria-current={active ? "page" : undefined}
                 >
                   <Icon
                     className={cn(
                       "w-6 h-6",
                       active ? "text-text-primary" : "text-text-secondary"
                     )}
+                    aria-hidden="true"
                   />
                   <span className="text-sm">{item.label}</span>
                 </Link>

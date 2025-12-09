@@ -36,7 +36,6 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({
   user,
-  currentUserId,
   onFollowChange,
 }: ProfileHeaderProps) {
   const [followersCount, setFollowersCount] = useState(user.followers_count);
@@ -109,8 +108,9 @@ export default function ProfileHeader({
             <span className="text-text-secondary">게시물</span>
           </div>
           <button
-            className="flex items-center gap-1 hover:opacity-70 transition-opacity"
+            className="flex items-center gap-1 hover:opacity-70 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             disabled={user.is_own_profile}
+            aria-label={`팔로워 ${followersCount.toLocaleString()}명`}
           >
             <span className="font-semibold text-text-primary">
               {followersCount.toLocaleString()}
@@ -118,8 +118,9 @@ export default function ProfileHeader({
             <span className="text-text-secondary">팔로워</span>
           </button>
           <button
-            className="flex items-center gap-1 hover:opacity-70 transition-opacity"
+            className="flex items-center gap-1 hover:opacity-70 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             disabled={user.is_own_profile}
+            aria-label={`팔로잉 ${user.following_count.toLocaleString()}명`}
           >
             <span className="font-semibold text-text-primary">
               {user.following_count.toLocaleString()}
