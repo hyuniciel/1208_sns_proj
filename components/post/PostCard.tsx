@@ -10,21 +10,28 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatRelativeTime } from '@/lib/utils/time';
+import LikeButton, { DoubleTapHeart, type LikeButtonRef } from './LikeButton';
 import type { PostWithUser } from '@/lib/types';
 
 interface PostCardProps {
   post: PostWithUser;
   currentUserId?: string; // 현재 사용자 ID (삭제 버튼 표시용)
+  onLikeChange?: (postId: string, liked: boolean, newCount: number) => void;
 }
 
-export default function PostCard({ post, currentUserId }: PostCardProps) {
+export default function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
   const [showFullCaption, setShowFullCaption] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes_count);
+  const [isLiked, setIsLiked] = useState(post.is_liked || false);
+  const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
+  const likeButtonRef = useRef<LikeButtonRef>(null);
+  const lastTapRef = useRef(0);
 
   // 캡션이 2줄을 초과하는지 간단히 체크 (실제로는 ref로 정확히 계산 가능)
   const captionLength = post.caption?.length || 0;
@@ -32,6 +39,37 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
   const displayCaption = shouldTruncate && !showFullCaption
     ? post.caption?.substring(0, 100) + '...'
     : post.caption;
+
+  // 더블탭 핸들러
+  const handleDoubleTap = useCallback(() => {
+    if (isLiked) return;
+
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300; // 300ms 내 두 번 탭하면 더블탭으로 간주
+
+    if (lastTapRef.current && now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // 더블탭 감지
+      setIsDoubleTapAnimating(true);
+      likeButtonRef.current?.handleDoubleTap();
+      
+      // 애니메이션 종료 (1초 후)
+      setTimeout(() => setIsDoubleTapAnimating(false), 1000);
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [isLiked]);
+
+  // 좋아요 변경 핸들러
+  const handleLikeChange = useCallback((liked: boolean, newCount: number) => {
+    setIsLiked(liked);
+    setLikesCount(newCount);
+    
+    // 부모 컴포넌트에 알림
+    if (onLikeChange) {
+      onLikeChange(post.id, liked, newCount);
+    }
+  }, [post.id, onLikeChange]);
 
   return (
     <article className="bg-card-background border border-border rounded-lg mb-4">
@@ -68,7 +106,10 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
       </header>
 
       {/* 이미지 */}
-      <div className="w-full aspect-square relative bg-gray-100">
+      <div 
+        className="w-full aspect-square relative bg-gray-100 cursor-pointer select-none"
+        onDoubleClick={handleDoubleTap}
+      >
         <Image
           src={post.image_url}
           alt={post.caption || '게시물 이미지'}
@@ -76,21 +117,23 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 630px"
           loading="lazy"
+          draggable={false}
         />
+        <DoubleTapHeart isAnimating={isDoubleTapAnimating} />
       </div>
 
       {/* 액션 버튼 */}
       <div className="flex items-center justify-between px-4 py-3 h-[48px]">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
-            <Heart
-              className={`w-6 h-6 transition-colors ${
-                post.is_liked
-                  ? 'fill-like text-like'
-                  : 'text-text-primary'
-              }`}
-            />
-          </Button>
+          <LikeButton
+            ref={likeButtonRef}
+            postId={post.id}
+            initialLiked={isLiked}
+            initialLikesCount={likesCount}
+            onLikeChange={handleLikeChange}
+            size="md"
+            enableDoubleTap={true}
+          />
           <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
             <MessageCircle className="w-6 h-6 text-text-primary" />
           </Button>
@@ -106,9 +149,9 @@ export default function PostCard({ post, currentUserId }: PostCardProps) {
       {/* 컨텐츠 */}
       <div className="px-4 pb-4 space-y-2">
         {/* 좋아요 수 */}
-        {post.likes_count > 0 && (
+        {likesCount > 0 && (
           <p className="font-bold text-text-primary">
-            좋아요 {post.likes_count.toLocaleString()}개
+            좋아요 {likesCount.toLocaleString()}개
           </p>
         )}
 

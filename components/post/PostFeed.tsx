@@ -31,6 +31,17 @@ export default function PostFeed({ userId }: PostFeedProps) {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // 좋아요 변경 핸들러
+  const handleLikeChange = useCallback((postId: string, liked: boolean, newCount: number) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? { ...post, is_liked: liked, likes_count: newCount }
+          : post
+      )
+    );
+  }, []);
+
   // 현재 사용자의 Supabase UUID 조회 (Clerk user ID로)
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -159,7 +170,12 @@ export default function PostFeed({ userId }: PostFeedProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+        <PostCard 
+          key={post.id} 
+          post={post} 
+          currentUserId={currentUserId}
+          onLikeChange={handleLikeChange}
+        />
       ))}
 
       {/* 무한 스크롤 감지 요소 */}
