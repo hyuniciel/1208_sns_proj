@@ -22,6 +22,22 @@ import {
   DialogContent,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { formatRelativeTime } from "@/lib/utils/time";
 import LikeButton, { DoubleTapHeart, type LikeButtonRef } from "./LikeButton";
@@ -38,6 +54,7 @@ interface PostModalProps {
     postId: string,
     changes: { likes?: number; comments?: number }
   ) => void;
+  onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
   currentUserId?: string;
   // 이전/다음 네비게이션용 (선택적)
   allPostIds?: string[]; // 현재 피드의 모든 게시물 ID 배열
@@ -49,6 +66,7 @@ export default function PostModal({
   isOpen,
   onClose,
   onPostChange,
+  onDelete,
   currentUserId,
   allPostIds,
   onNavigate,
@@ -60,6 +78,8 @@ export default function PostModal({
   const [error, setError] = useState<string | null>(null);
   const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const likeButtonRef = useRef<LikeButtonRef>(null);
   const lastTapRef = useRef(0);
 
@@ -340,9 +360,22 @@ export default function PostModal({
                   </div>
                 </div>
                 {currentUserId === post.user_id && (
-                  <Button variant="ghost" size="sm" className="p-0">
-                    <MoreHorizontal className="w-5 h-5 text-text-primary" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-0">
+                        <MoreHorizontal className="w-5 h-5 text-text-primary" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        variant="destructive"
+                        className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20"
+                        onClick={handleDeleteClick}
+                      >
+                        삭제
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
 
@@ -499,9 +532,22 @@ export default function PostModal({
                 </div>
               </div>
               {currentUserId === post.user_id && (
-                <Button variant="ghost" size="sm" className="p-0">
-                  <MoreHorizontal className="w-5 h-5 text-text-primary" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-0">
+                      <MoreHorizontal className="w-5 h-5 text-text-primary" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      variant="destructive"
+                      className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20"
+                      onClick={handleDeleteClick}
+                    >
+                      삭제
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
 
@@ -575,6 +621,28 @@ export default function PostModal({
           </div>
         </div>
       </DialogContent>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>게시물을 삭제하시겠어요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 되돌릴 수 없습니다. 게시물이 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+            >
+              {isDeleting ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

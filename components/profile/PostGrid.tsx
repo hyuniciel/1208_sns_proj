@@ -117,6 +117,15 @@ export default function PostGrid({
     []
   );
 
+  // 게시물 삭제 핸들러
+  const handlePostDelete = useCallback((postId: string) => {
+    setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+    // 모달이 열려있고 삭제된 게시물이면 모달 닫기
+    if (selectedPostId === postId) {
+      setSelectedPostId(null);
+    }
+  }, [selectedPostId]);
+
   if (isLoading) {
     return <PostGridSkeleton />;
   }
@@ -196,6 +205,7 @@ export default function PostGrid({
         isOpen={!!selectedPostId}
         onClose={handleCloseModal}
         onPostChange={handlePostChange}
+        onDelete={handlePostDelete}
         currentUserId={currentUserId}
         allPostIds={posts.map((p) => p.id)}
         onNavigate={setSelectedPostId}

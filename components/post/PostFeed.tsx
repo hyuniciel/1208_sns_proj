@@ -80,6 +80,15 @@ export default function PostFeed({ userId }: PostFeedProps) {
     );
   }, []);
 
+  // 게시물 삭제 핸들러
+  const handlePostDelete = useCallback((postId: string) => {
+    setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+    // 모달이 열려있고 삭제된 게시물이면 모달 닫기
+    if (selectedPostId === postId) {
+      setSelectedPostId(null);
+    }
+  }, [selectedPostId]);
+
   // 현재 사용자의 Supabase UUID 조회 (Clerk user ID로)
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -216,6 +225,7 @@ export default function PostFeed({ userId }: PostFeedProps) {
             onLikeChange={handleLikeChange}
             onCommentChange={handleCommentChange}
             onPostClick={handlePostClick}
+            onDelete={handlePostDelete}
           />
         ))}
 

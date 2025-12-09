@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClerkSupabaseClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/service-role";
 import type { PostWithUser } from "@/lib/types";
 
 /**
@@ -144,6 +145,152 @@ export async function GET(
     console.error("❌ GET /api/posts/[postId] 에러:", error);
     return NextResponse.json(
       { error: "Internal server error", data: null },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE: 게시물 삭제
+ *
+ * 경로 파라미터:
+ * - postId: 게시물 ID (UUID)
+ *
+ * 응답:
+ * {
+ *   success: true,
+ *   message: "Post deleted successfully"
+ * }
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ postId: string }> }
+) {
+  try {
+    console.group("DELETE /api/posts/[postId]");
+
+    // 1. 인증 확인
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) {
+      console.log("❌ 인증 실패");
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    console.log("✅ 인증 확인:", clerkUserId);
+
+    const { postId } = await params;
+
+    if (!postId || typeof postId !== "string") {
+      console.log("❌ 잘못된 요청: postId 필수");
+      return NextResponse.json(
+        { error: "postId is required" },
+        { status: 400 }
+      );
+    }
+    console.log("📋 요청 데이터:", { postId });
+
+    // 2. Supabase 클라이언트 생성
+    const supabase = createClerkSupabaseClient();
+
+    // 3. 현재 사용자 UUID 조회
+    const { data: currentUser, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_id", clerkUserId)
+      .single();
+
+    if (userError || !currentUser) {
+      console.error("❌ 사용자 조회 실패:", userError);
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+    console.log("✅ 현재 사용자 UUID:", currentUser.id);
+
+    // 4. 게시물 존재 및 소유권 확인
+    const { data: post, error: postError } = await supabase
+      .from("posts")
+      .select("id, user_id, image_url")
+      .eq("id", postId)
+      .single();
+
+    if (postError || !post) {
+      console.error("❌ 게시물 조회 실패:", postError);
+      return NextResponse.json(
+        { error: "Post not found", details: postError?.message },
+        { status: 404 }
+      );
+    }
+
+    // 5. 소유권 검증 (본인 게시물만 삭제 가능)
+    if (post.user_id !== currentUser.id) {
+      console.log("❌ 권한 없음: 본인 게시물만 삭제 가능");
+      return NextResponse.json(
+        { error: "Forbidden: You can only delete your own posts" },
+        { status: 403 }
+      );
+    }
+    console.log("✅ 소유권 확인 완료");
+
+    // 6. Supabase Storage에서 이미지 삭제
+    // image_url에서 파일 경로 추출
+    // 예시: https://[project].supabase.co/storage/v1/object/public/posts/user123/1234567890-abc123.jpg
+    let filePath: string | null = null;
+    try {
+      const url = new URL(post.image_url);
+      const pathMatch = url.pathname.match(/\/posts\/(.+)$/);
+      if (pathMatch && pathMatch[1]) {
+        // 쿼리 파라미터 제거
+        filePath = pathMatch[1].split("?")[0];
+      }
+    } catch (error) {
+      console.warn("⚠️ 이미지 URL 파싱 실패:", error);
+    }
+
+    if (filePath) {
+      console.log("📤 Storage 파일 삭제 시작:", filePath);
+      const { error: storageError } = await supabase.storage
+        .from("posts")
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error("⚠️ Storage 파일 삭제 실패:", storageError);
+        // DB 삭제는 계속 진행 (선택적)
+      } else {
+        console.log("✅ Storage 파일 삭제 완료:", filePath);
+      }
+    } else {
+      console.warn("⚠️ 파일 경로 추출 실패, Storage 삭제 건너뜀");
+    }
+
+    // 7. DB에서 게시물 삭제 (CASCADE로 좋아요/댓글 자동 삭제)
+    const { error: deleteError } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", postId);
+
+    if (deleteError) {
+      console.error("❌ 게시물 삭제 실패:", deleteError);
+      return NextResponse.json(
+        { error: "Failed to delete post", details: deleteError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ 게시물 삭제 완료:", postId);
+    console.groupEnd();
+
+    return NextResponse.json({
+      success: true,
+      message: "Post deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ DELETE /api/posts/[postId] 에러:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

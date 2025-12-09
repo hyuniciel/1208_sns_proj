@@ -15,6 +15,22 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { formatRelativeTime } from '@/lib/utils/time';
 import LikeButton, { DoubleTapHeart, type LikeButtonRef } from './LikeButton';
 import CommentList from '@/components/comment/CommentList';
@@ -27,9 +43,10 @@ interface PostCardProps {
   onLikeChange?: (postId: string, liked: boolean, newCount: number) => void;
   onCommentChange?: (postId: string, newCount: number) => void;
   onPostClick?: (postId: string) => void; // 게시물 클릭 시 모달 열기
+  onDelete?: (postId: string) => void; // 게시물 삭제 시 콜백
 }
 
-export default function PostCard({ post, currentUserId, onLikeChange, onCommentChange, onPostClick }: PostCardProps) {
+export default function PostCard({ post, currentUserId, onLikeChange, onCommentChange, onPostClick, onDelete }: PostCardProps) {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
@@ -38,6 +55,8 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
   const [commentsCount, setCommentsCount] = useState(post.comments_count);
   const [showAllComments, setShowAllComments] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const likeButtonRef = useRef<LikeButtonRef>(null);
   const lastTapRef = useRef(0);
 
@@ -149,6 +168,44 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
     }
   }, [showAllComments, loadComments]);
 
+  // 삭제 확인 다이얼로그 열기
+  const handleDeleteClick = useCallback(() => {
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  // 게시물 삭제 확인
+  const handleDeleteConfirm = useCallback(async () => {
+    if (isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "게시물 삭제에 실패했습니다.");
+      }
+
+      // 삭제 성공 시 부모 컴포넌트에 알림
+      if (onDelete) {
+        onDelete(post.id);
+      }
+
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("❌ 게시물 삭제 에러:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "게시물 삭제에 실패했습니다."
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [post.id, isDeleting, onDelete]);
+
   return (
     <article className="bg-card-background border border-border rounded-lg mb-4">
       {/* 헤더 */}
@@ -175,11 +232,24 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
           </div>
         </div>
 
-        {/* ⋯ 메뉴 (본인 게시물만) - 나중에 dropdown-menu로 구현 */}
+        {/* ⋯ 메뉴 (본인 게시물만) */}
         {currentUserId === post.user_id && (
-          <Button variant="ghost" size="sm" className="p-0">
-            <MoreHorizontal className="w-5 h-5 text-text-primary" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0">
+                <MoreHorizontal className="w-5 h-5 text-text-primary" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                variant="destructive"
+                className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20"
+                onClick={handleDeleteClick}
+              >
+                삭제
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </header>
 
@@ -277,6 +347,28 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
           placeholder="댓글 달기..."
         />
       </div>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>게시물을 삭제하시겠어요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 되돌릴 수 없습니다. 게시물이 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+            >
+              {isDeleting ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
   );
 }

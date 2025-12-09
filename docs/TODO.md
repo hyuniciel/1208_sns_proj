@@ -217,14 +217,20 @@
 
 ## 10. 게시물 삭제
 
-- [ ] `app/api/posts/[postId]/route.ts`
-  - [ ] DELETE: 게시물 삭제
-  - [ ] 본인만 삭제 가능 (인증 검증)
-  - [ ] Supabase Storage에서 이미지 삭제
-- [ ] PostCard ⋯ 메뉴
-  - [ ] 본인 게시물만 삭제 옵션 표시
-  - [ ] 삭제 확인 다이얼로그
-  - [ ] 삭제 후 피드에서 제거
+- [x] `app/api/posts/[postId]/route.ts`
+  - [x] DELETE: 게시물 삭제
+  - [x] 본인만 삭제 가능 (인증 검증)
+  - [x] Supabase Storage에서 이미지 삭제
+- [x] PostCard ⋯ 메뉴
+  - [x] 본인 게시물만 삭제 옵션 표시
+  - [x] 삭제 확인 다이얼로그
+  - [x] 삭제 후 피드에서 제거
+- [x] PostModal에서 삭제 기능
+  - [x] DropdownMenu 통합
+  - [x] 삭제 확인 다이얼로그
+  - [x] 삭제 후 모달 닫기
+- [x] PostGrid에서 삭제 처리
+  - [x] 삭제 시 그리드에서 제거
 
 ## 11. 반응형 및 애니메이션
 
