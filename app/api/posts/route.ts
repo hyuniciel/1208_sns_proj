@@ -86,13 +86,7 @@ export async function GET(request: NextRequest) {
         caption,
         created_at,
         likes_count,
-        comments_count,
-        users!post_stats_user_id_fkey (
-          id,
-          clerk_id,
-          name,
-          created_at
-        )
+        comments_count
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
@@ -114,6 +108,25 @@ export async function GET(request: NextRequest) {
 
     console.log(`✅ 게시물 ${posts?.length || 0}개 조회됨`);
 
+    // 5-1. users 정보 별도 조회 (VIEW에는 외래 키가 없으므로 별도 조회 필요)
+    const userIds = [...new Set(posts?.map((p) => p.user_id) || [])];
+    let usersMap = new Map<string, { id: string; clerk_id: string; name: string; created_at: string }>();
+
+    if (userIds.length > 0) {
+      const { data: users, error: usersError } = await supabase
+        .from("users")
+        .select("id, clerk_id, name, created_at")
+        .in("id", userIds);
+
+      if (usersError) {
+        console.error("❌ 사용자 정보 조회 실패:", usersError);
+        // 에러가 발생해도 게시물은 반환하되, 사용자 정보는 기본값 사용
+      } else {
+        usersMap = new Map(users?.map((u) => [u.id, u]) || []);
+        console.log(`✅ 사용자 정보 ${usersMap.size}개 조회됨`);
+      }
+    }
+
     // 6. 좋아요 상태 확인
     const postIds = posts?.map((p) => p.post_id) || [];
     let likedPostIds = new Set<string>();
@@ -130,23 +143,27 @@ export async function GET(request: NextRequest) {
     }
 
     // 7. 응답 데이터 형식 변환
-    const formattedPosts: PostWithUser[] = (posts || []).map((post) => ({
-      id: post.post_id,
-      user_id: post.user_id,
-      image_url: post.image_url,
-      caption: post.caption,
-      created_at: post.created_at,
-      updated_at: post.created_at, // post_stats에는 updated_at이 없으므로 created_at 사용
-      likes_count: post.likes_count || 0,
-      comments_count: post.comments_count || 0,
-      user: {
-        id: post.users.id,
-        clerk_id: post.users.clerk_id,
-        name: post.users.name,
-        created_at: post.users.created_at,
-      },
-      is_liked: likedPostIds.has(post.post_id),
-    }));
+    const formattedPosts: PostWithUser[] = (posts || []).map((post) => {
+      const user = usersMap.get(post.user_id);
+      
+      return {
+        id: post.post_id,
+        user_id: post.user_id,
+        image_url: post.image_url,
+        caption: post.caption,
+        created_at: post.created_at,
+        updated_at: post.created_at, // post_stats에는 updated_at이 없으므로 created_at 사용
+        likes_count: post.likes_count || 0,
+        comments_count: post.comments_count || 0,
+        user: user || {
+          id: post.user_id,
+          clerk_id: '',
+          name: 'Unknown',
+          created_at: post.created_at,
+        },
+        is_liked: likedPostIds.has(post.post_id),
+      };
+    });
 
     // 8. 다음 페이지 존재 여부 확인
     const hasMore = formattedPosts.length === limit;

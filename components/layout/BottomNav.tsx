@@ -78,7 +78,7 @@ export default function BottomNav() {
           if (item.onClick) {
             return (
               <button
-                key={item.href}
+                key={item.label}
                 onClick={item.onClick}
                 className={cn(
                   "flex-1 flex items-center justify-center h-full",
@@ -98,7 +98,7 @@ export default function BottomNav() {
 
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={cn(
                 "flex-1 flex items-center justify-center h-full",

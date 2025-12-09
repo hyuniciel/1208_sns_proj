@@ -88,7 +88,7 @@ export default function Sidebar() {
               if (item.onClick) {
                 return (
                   <button
-                    key={item.href}
+                    key={item.label}
                     onClick={item.onClick}
                     className={cn(
                       "w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors",
@@ -109,7 +109,7 @@ export default function Sidebar() {
 
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
                   className={cn(
                     "flex items-center gap-4 px-4 py-3 rounded-lg transition-colors",
@@ -148,7 +148,7 @@ export default function Sidebar() {
               if (item.onClick) {
                 return (
                   <button
-                    key={item.href}
+                    key={item.label}
                     onClick={item.onClick}
                     className={cn(
                       "w-full flex items-center justify-center p-3 rounded-lg transition-colors",
@@ -169,7 +169,7 @@ export default function Sidebar() {
 
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
                   className={cn(
                     "flex items-center justify-center p-3 rounded-lg transition-colors",

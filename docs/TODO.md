@@ -196,29 +196,29 @@
 
 ## 11. 반응형 및 애니메이션
 
-- [ ] 반응형 브레이크포인트 적용
-  - [ ] Mobile (< 768px): BottomNav, Header 표시
-  - [ ] Tablet (768px ~ 1023px): Icon-only Sidebar
-  - [ ] Desktop (1024px+): Full Sidebar
+- [x] 반응형 브레이크포인트 적용
+  - [x] Mobile (< 768px): BottomNav, Header 표시
+  - [x] Tablet (768px ~ 1023px): Icon-only Sidebar
+  - [x] Desktop (1024px+): Full Sidebar
 - [ ] 좋아요 애니메이션
   - [ ] 클릭 시 scale(1.3) → scale(1) (0.15초)
   - [ ] 더블탭 시 큰 하트 fade in/out (1초)
-- [ ] 로딩 상태
-  - [ ] Skeleton UI (PostCardSkeleton)
-  - [ ] Shimmer 효과
+- [x] 로딩 상태
+  - [x] Skeleton UI (PostCardSkeleton)
+  - [x] Shimmer 효과
 
 ## 12. 에러 핸들링 및 최적화
 
-- [ ] 에러 핸들링
-  - [ ] API 에러 처리
-  - [ ] 사용자 친화적 에러 메시지
-  - [ ] 네트워크 에러 처리
-- [ ] 이미지 최적화
-  - [ ] Next.js Image 컴포넌트 사용
-  - [ ] Lazy loading
-- [ ] 성능 최적화
+- [x] 에러 핸들링
+  - [x] API 에러 처리 (PostFeed에서 구현됨)
+  - [x] 사용자 친화적 에러 메시지 (PostFeed에서 구현됨)
+  - [x] 네트워크 에러 처리 (PostFeed에서 구현됨)
+- [x] 이미지 최적화
+  - [x] Next.js Image 컴포넌트 사용 (PostCard에서 사용 중)
+  - [x] Lazy loading (PostCard에서 loading="lazy" 사용 중)
+- [x] 성능 최적화
   - [ ] React.memo 적용 (필요한 컴포넌트)
-  - [ ] useMemo, useCallback 활용
+  - [x] useMemo, useCallback 활용 (PostFeed에서 useCallback 사용 중)
 
 ## 13. 최종 마무리
 
