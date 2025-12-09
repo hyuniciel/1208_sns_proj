@@ -15,6 +15,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import FollowButton from "./FollowButton";
 import type { User } from "@/lib/types";
 
 interface ProfileHeaderProps {
@@ -38,34 +39,15 @@ export default function ProfileHeader({
   currentUserId,
   onFollowChange,
 }: ProfileHeaderProps) {
-  const [isFollowing, setIsFollowing] = useState(user.is_following || false);
   const [followersCount, setFollowersCount] = useState(user.followers_count);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleFollow = async () => {
-    if (isLoading || user.is_own_profile) return;
-
-    setIsLoading(true);
-    try {
-      // 팔로우 기능은 9번에서 구현 예정
-      // 일단 기본 구조만 구현
-      const newIsFollowing = !isFollowing;
-      setIsFollowing(newIsFollowing);
-      
-      const newCount = newIsFollowing
-        ? followersCount + 1
-        : Math.max(0, followersCount - 1);
-      setFollowersCount(newCount);
-
-      if (onFollowChange) {
-        onFollowChange(newIsFollowing, newCount);
-      }
-    } catch (error) {
-      console.error("❌ 팔로우 에러:", error);
-      // 상태 롤백
-      setIsFollowing(!isFollowing);
-    } finally {
-      setIsLoading(false);
+  const handleFollowChange = (
+    isFollowing: boolean,
+    newFollowersCount: number
+  ) => {
+    setFollowersCount(newFollowersCount);
+    if (onFollowChange) {
+      onFollowChange(isFollowing, newFollowersCount);
     }
   };
 
@@ -101,19 +83,13 @@ export default function ProfileHeader({
                 프로필 편집
               </Button>
             ) : (
-              <Button
-                variant={isFollowing ? "outline" : "default"}
+              <FollowButton
+                targetUserId={user.id}
+                initialIsFollowing={user.is_following || false}
+                initialFollowersCount={user.followers_count}
+                onFollowChange={handleFollowChange}
                 size="sm"
-                onClick={handleFollow}
-                disabled={isLoading}
-                className="text-sm"
-              >
-                {isLoading
-                  ? "처리 중..."
-                  : isFollowing
-                  ? "팔로잉"
-                  : "팔로우"}
-              </Button>
+              />
             )}
             {/* 메시지 버튼 (1차 제외) */}
           </div>
