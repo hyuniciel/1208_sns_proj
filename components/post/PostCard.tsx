@@ -26,9 +26,10 @@ interface PostCardProps {
   currentUserId?: string; // 현재 사용자 ID (삭제 버튼 표시용)
   onLikeChange?: (postId: string, liked: boolean, newCount: number) => void;
   onCommentChange?: (postId: string, newCount: number) => void;
+  onPostClick?: (postId: string) => void; // 게시물 클릭 시 모달 열기
 }
 
-export default function PostCard({ post, currentUserId, onLikeChange, onCommentChange }: PostCardProps) {
+export default function PostCard({ post, currentUserId, onLikeChange, onCommentChange, onPostClick }: PostCardProps) {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
@@ -186,6 +187,7 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
       <div 
         className="w-full aspect-square relative bg-gray-100 cursor-pointer select-none"
         onDoubleClick={handleDoubleTap}
+        onClick={() => onPostClick?.(post.id)}
       >
         <Image
           src={post.image_url}

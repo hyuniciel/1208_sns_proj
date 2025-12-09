@@ -13,6 +13,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PostCard from './PostCard';
 import PostCardSkeleton from './PostCardSkeleton';
+import PostModal from './PostModal';
 import { useUser } from '@clerk/nextjs';
 import type { PostWithUser } from '@/lib/types';
 
@@ -29,6 +30,7 @@ export default function PostFeed({ userId }: PostFeedProps) {
   const [error, setError] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // 좋아요 변경 핸들러
@@ -48,6 +50,31 @@ export default function PostFeed({ userId }: PostFeedProps) {
       prevPosts.map((post) =>
         post.id === postId
           ? { ...post, comments_count: newCount }
+          : post
+      )
+    );
+  }, []);
+
+  // 게시물 클릭 핸들러
+  const handlePostClick = useCallback((postId: string) => {
+    setSelectedPostId(postId);
+  }, []);
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = useCallback(() => {
+    setSelectedPostId(null);
+  }, []);
+
+  // 모달에서 게시물 변경 핸들러
+  const handlePostChange = useCallback((postId: string, changes: { likes?: number; comments?: number }) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              ...(changes.likes !== undefined && { likes_count: changes.likes }),
+              ...(changes.comments !== undefined && { comments_count: changes.comments }),
+            }
           : post
       )
     );
@@ -179,30 +206,44 @@ export default function PostFeed({ userId }: PostFeedProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
-          currentUserId={currentUserId}
-          onLikeChange={handleLikeChange}
-          onCommentChange={handleCommentChange}
-        />
-      ))}
+    <>
+      <div className="space-y-4">
+        {posts.map((post) => (
+          <PostCard 
+            key={post.id} 
+            post={post} 
+            currentUserId={currentUserId}
+            onLikeChange={handleLikeChange}
+            onCommentChange={handleCommentChange}
+            onPostClick={handlePostClick}
+          />
+        ))}
 
-      {/* 무한 스크롤 감지 요소 */}
-      {hasMore && (
-        <div ref={sentinelRef} className="h-4">
-          {isLoadingMore && (
-            <div className="space-y-4">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <PostCardSkeleton key={i} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+        {/* 무한 스크롤 감지 요소 */}
+        {hasMore && (
+          <div ref={sentinelRef} className="h-4">
+            {isLoadingMore && (
+              <div className="space-y-4">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <PostCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 게시물 상세 모달 */}
+      <PostModal
+        postId={selectedPostId}
+        isOpen={!!selectedPostId}
+        onClose={handleCloseModal}
+        onPostChange={handlePostChange}
+        currentUserId={currentUserId}
+        allPostIds={posts.map((p) => p.id)}
+        onNavigate={setSelectedPostId}
+      />
+    </>
   );
 }
 
