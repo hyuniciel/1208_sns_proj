@@ -12,7 +12,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import FollowButton from "./FollowButton";
@@ -41,7 +41,12 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const [followersCount, setFollowersCount] = useState(user.followers_count);
 
-  const handleFollowChange = (
+  // Props 변경 시 상태 동기화
+  useEffect(() => {
+    setFollowersCount(user.followers_count);
+  }, [user.followers_count]);
+
+  const handleFollowChange = useCallback((
     isFollowing: boolean,
     newFollowersCount: number
   ) => {
@@ -49,7 +54,7 @@ export default function ProfileHeader({
     if (onFollowChange) {
       onFollowChange(isFollowing, newFollowersCount);
     }
-  };
+  }, [onFollowChange]);
 
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 px-4 py-6">

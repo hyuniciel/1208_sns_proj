@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,12 @@ export default function FollowButton({
   const [followersCount, setFollowersCount] = useState(initialFollowersCount);
   const [isLoading, setIsLoading] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+
+  // Props 변경 시 상태 동기화
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+    setFollowersCount(initialFollowersCount);
+  }, [initialIsFollowing, initialFollowersCount]);
 
   const handleToggleFollow = useCallback(async () => {
     if (isLoading || disabled) return;
