@@ -217,16 +217,25 @@ export default function PostFeed({ userId }: PostFeedProps) {
   return (
     <>
       <div className="space-y-4">
-        {posts.map((post) => (
-          <PostCard 
-            key={post.id} 
-            post={post} 
-            currentUserId={currentUserId}
-            onLikeChange={handleLikeChange}
-            onCommentChange={handleCommentChange}
-            onPostClick={handlePostClick}
-            onDelete={handlePostDelete}
-          />
+        {posts.map((post, index) => (
+          <div
+            key={post.id}
+            className="animate-in fade-in slide-in-from-bottom-4"
+            style={{
+              animationDelay: `${Math.min(index * 50, 300)}ms`,
+              animationDuration: '0.3s',
+              animationFillMode: 'both',
+            }}
+          >
+            <PostCard 
+              post={post} 
+              currentUserId={currentUserId}
+              onLikeChange={handleLikeChange}
+              onCommentChange={handleCommentChange}
+              onPostClick={handlePostClick}
+              onDelete={handlePostDelete}
+            />
+          </div>
         ))}
 
         {/* 무한 스크롤 감지 요소 */}

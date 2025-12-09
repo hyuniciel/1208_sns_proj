@@ -263,7 +263,7 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
           src={post.image_url}
           alt={post.caption || '게시물 이미지'}
           fill
-          className="object-cover"
+          className="object-cover image-fade-in"
           sizes="(max-width: 768px) 100vw, 630px"
           loading="lazy"
           draggable={false}
@@ -283,14 +283,14 @@ export default function PostCard({ post, currentUserId, onLikeChange, onCommentC
             size="md"
             enableDoubleTap={true}
           />
-          <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
+          <Button variant="ghost" size="sm" className="p-0 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-200">
             <MessageCircle className="w-6 h-6 text-text-primary" />
           </Button>
-          <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
+          <Button variant="ghost" size="sm" className="p-0 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-200">
             <Send className="w-6 h-6 text-text-primary" />
           </Button>
         </div>
-        <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
+        <Button variant="ghost" size="sm" className="p-0 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-200">
           <Bookmark className="w-6 h-6 text-text-primary" />
         </Button>
       </div>

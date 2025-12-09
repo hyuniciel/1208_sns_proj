@@ -324,7 +324,7 @@ export default function PostModal({
                 src={post.image_url}
                 alt={post.caption || "게시물 이미지"}
                 fill
-                className="object-cover"
+                className="object-cover image-fade-in"
                 sizes="100vw"
                 priority
                 draggable={false}
@@ -495,7 +495,7 @@ export default function PostModal({
                 src={post.image_url}
                 alt={post.caption || "게시물 이미지"}
                 fill
-                className="object-contain"
+                className="object-contain image-fade-in"
                 sizes="50vw"
                 priority
                 draggable={false}

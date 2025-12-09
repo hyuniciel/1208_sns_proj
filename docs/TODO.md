@@ -244,6 +244,15 @@
 - [x] 로딩 상태
   - [x] Skeleton UI (PostCardSkeleton)
   - [x] Shimmer 효과
+- [x] 이미지 로딩 애니메이션
+  - [x] Fade-in 효과 (PostCard, PostGrid, PostModal)
+- [x] 버튼 호버 효과 개선
+  - [x] 일관된 호버 효과 적용
+- [x] 스크롤 애니메이션
+  - [x] 새 게시물 표시 애니메이션 (fade-in + slide-in)
+- [x] 성능 최적화
+  - [x] prefers-reduced-motion 지원
+  - [x] CSS 애니메이션 최적화
 
 ## 12. 에러 핸들링 및 최적화
 

@@ -180,7 +180,7 @@ export default function PostGrid({
               src={post.image_url}
               alt="게시물"
               fill
-              className="object-cover"
+              className="object-cover image-fade-in"
               sizes="(max-width: 768px) 33vw, 310px"
               loading="lazy"
             />

@@ -11,7 +11,7 @@ export default function PostGridSkeleton() {
       {Array.from({ length: 9 }).map((_, i) => (
         <div
           key={i}
-          className="aspect-square bg-gray-200 animate-pulse"
+          className="aspect-square shimmer"
         />
       ))}
     </div>
